@@ -613,17 +613,29 @@ def get_file_content(  # noqa: PLR0913, PLR0915
                         f' {readable_files_to_include}'
                     ),
                 )
-
         return text_to_include
+
+    markdown_lines = markdown.splitlines()
+    long_lines_indices = [(i,line) for i,line in enumerate(markdown_lines) if len(line) > 10_000]
+    for i,_ in sorted(long_lines_indices, reverse=True, key=lambda t: t[0]):
+        markdown_lines[i] = "~~~REMOVED LINE~~~"
+    markdown = "\n".join(markdown_lines)
 
     markdown = tags['include'].sub(
         found_include_tag,
         markdown,
     )
-    return tags['include-markdown'].sub(
+    markdown = tags['include-markdown'].sub(
         found_include_markdown_tag,
         markdown,
     )
+
+    markdown_lines = markdown.splitlines()
+    for i in range(len(markdown_lines)):
+        line = markdown_lines[i]
+        if line == "~~~REMOVED LINE~~~":
+            _,markdown_lines[i] = long_lines_indices.pop(0)
+    return "\n".join(markdown_lines)
 
 
 def on_page_markdown(
