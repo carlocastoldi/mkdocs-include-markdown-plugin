@@ -625,6 +625,14 @@ def get_file_content(  # noqa: PLR0913, PLR0915
         found_include_tag,
         markdown,
     )
+
+    markdown_lines = markdown.splitlines()
+    long_lines_indices += [(i,line) for i,line in enumerate(markdown_lines) if len(line) > 10_000]
+    long_lines_indices.sort(key=lambda t: t[0])
+    for i,_ in sorted(long_lines_indices, reverse=True, key=lambda t: t[0]):
+        markdown_lines[i] = "~~~REMOVED LINE~~~"
+    markdown = "\n".join(markdown_lines)
+
     markdown = tags['include-markdown'].sub(
         found_include_markdown_tag,
         markdown,
